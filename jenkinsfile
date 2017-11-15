@@ -1,0 +1,54 @@
+node {
+		echo 'Starting Build process'
+		
+		stage('Code Checkout')
+		{
+			ws('D:\\Dump\\Practice\\couponservices') {
+			echo 'Code Checkout in progress'
+			echo '${WorkSpacePath}'
+			git url: 'https://github.com/mbollam/CaseStudy.git'
+			}
+		}
+		
+		echo 'Starting to Compile code'
+		stage('Code Compile')
+		{
+			ws('D:\\Dump\\Practice\\couponservices') {
+			def libName     = 'CouponManager'
+			def testLibName = 'Cyotek.Core.Tests'
+			def projOriginalName = 'CouponManagerAPI'
+			def slnName     = "${libName}.sln"
+			def projName    = "${libName}\\${projOriginalName}.csproj"
+			def svnRoot     = '<YOURSVNTRUNKURI>'
+			def nugetApiKey = '<YOURNUGETAPIKEY>'
+			def nugetServer = '<YOURNUGETSERVERURI>'
+
+			def config      = 'Release'
+  
+			//def nunitRunner = "\"${WORKSPACE}\\tools\\nunit2\\bin\\nunit-console-x86.exe\""
+			def nuget       = "\"${WORKSPACE}\\tools\\nuget\\nuget.exe\""
+			echo 'Code Compilation in progress'
+			
+			 def msbHome = 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\MSBuild\\15.0\\Bin\\MSBuild.exe'
+			 //bat("${nuget} restore \"${slnName}\"")
+			 bat "\"${msbHome}\" \"${slnName}\" /p:Configuration=${config} /t:Clean,Build"
+			}
+		}
+		stage('Unit Test Phase'){
+			ws('D:\\Dump\\Practice\\couponservices\\CouponApi.UnitTests')
+			{
+			   bat "dotnet test" 
+			}
+		}
+		stage('Sonar Qube Analysis Phase'){
+			ws('D:\\Dump\\Practice\\couponservices')
+			{
+			   //bat "sonar-runner" 
+				def scannerHome = 'D:\\Dump\\Practice\\sonar-runner-2.4\\bin'
+			   // withSonarQubeEnv('SonarQube 6.2')
+				//{
+					bat "D:\\Dump\\Practice\\sonar-runner-2.4\\bin\\sonar-runner.bat"
+				//}
+			}
+		}
+	}
